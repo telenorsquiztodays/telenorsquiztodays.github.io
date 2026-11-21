@@ -1,0 +1,36 @@
+name: Add GA4 gtag snippet
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  add-gtag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Insert gtag snippet after charset meta
+        run: |
+          python3 - << 'PY'
+          import pathlib
+          p = pathlib.Path("index.html")
+          text = p.read_text(encoding="utf-8")
+          if "G-M27T2GYHN4" in text:
+              print("gtag already present; no change")
+          else:
+              anchor = '<meta charset="utf-8">'
+              snippet = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-M27T2GYHN4"></script>\n<script>\n  window.dataLayer = window.dataLayer || [];\n  function gtag(){dataLayer.push(arguments);}\n  gtag(\'js\', new Date());\n  gtag(\'config\', \'G-M27T2GYHN4\');\n</script>'
+              assert anchor in text, "charset meta not found"
+              text = text.replace(anchor, anchor + "\n" + snippet, 1)
+              p.write_text(text, encoding="utf-8")
+              print("inserted gtag snippet")
+          PY
+      - name: Commit if changed
+        run: |
+          git config user.name "telenorsquiztodays"
+          git config user.email "telenorsquiztodays@users.noreply.github.com"
+          git add index.html
+          git diff --cached --quiet || git commit -m "Add Google Analytics 4 (G-M27T2GYHN4) gtag snippet to index.html"
+          git push
