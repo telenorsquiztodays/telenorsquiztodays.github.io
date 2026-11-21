@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://telenorsquiztodays.github.io/sitemap.xml
